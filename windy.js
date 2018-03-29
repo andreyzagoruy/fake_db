@@ -7,7 +7,7 @@ function drawCenter(centerId) {
     fetch(centersUrl + centerId)
         .then(response => response.json())
         .then(center => {
-            const centerPosition = L.latLng(parseInt(center.location.lat), parseInt(center.location.lng));
+            const centerPosition = L.latLng(parseFloat(center.location.lat), parseFloat(center.location.lng));
             const centerMarker = L.marker(centerPosition, {
                 icon: W.map.myMarkers.pulsatingIcon
             });
@@ -34,7 +34,7 @@ if (location.search) {
   });
 }
 if (queryParameters['lat'] && queryParameters['long']) {
-    const position = L.latLng(parseInt(queryParameters['lat']), parseInt(queryParameters['long']));
+    const position = L.latLng(parseFloat(queryParameters['lat']), parseFloat(queryParameters['long']));
     map.setView(position, 13);
 } else {
     map.locate({

@@ -29,6 +29,36 @@
                 "lng":"21.35"
             },
             "rating":"4"
+        },
+        {
+            "id":100,
+            "name":"Test Center 1",
+            "address":"Thailand, Phuket",
+            "location": {
+                "lat":"0",
+                "lng":"21.035"
+            },
+            "rating":"4"
+        },
+        {
+            "id":200,
+            "name":"Test Center 2",
+            "address":"Thailand, Phuket",
+            "location": {
+                "lat":"-10",
+                "lng":"-10"
+            },
+            "rating":"4"
+        },
+        {
+            "id":300,
+            "name":"Test Center 3",
+            "address":"Thailand, Phuket",
+            "location": {
+                "lat":"10",
+                "lng":"10"
+            },
+            "rating":"4"
         }
     ]
 }
