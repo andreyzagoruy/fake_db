@@ -6,8 +6,13 @@ const centers = [];
 var isCameraCoordinatesSet = false;
 var zoomLevel = 13;
 
+const maxLatitudeValue = 90;
+const minLatitudeValue = -90;
+const maxLongtitudeValue = 180;
+const minLongtitudeValue = -180;
+
 function fetchCenter(url, id) {
-    return fetch(url + id).then(response => response.json());
+    return fetch(url + id).then(response => response.ok ? response.json() : null );
 }
 
 function createCenterObject(rawCenterData) {
@@ -29,6 +34,10 @@ function saveCenterDetails(arrayOfCenters, centerToSave) {
 }
 
 function getPositionObject(lat, lng) {
+    if (lat > maxLatitudeValue) lat = maxLatitudeValue;
+    if (lat < minLatitudeValue) lat = minLatitudeValue;
+    if (lng > maxLongtitudeValue) lng = maxLongtitudeValue;
+    if (lng < minLongtitudeValue) lng = minLongtitudeValue;
     return L.latLng(parseFloat(lat), parseFloat(lng));
 }
 
@@ -63,8 +72,18 @@ function findMaxCoordinate(arrayOfCoordinates) {
     return Math.max(...arrayOfCoordinates);
 }
 
-function findBoundaries() {
-    
+function findBoundaries(arrayOfCenters) {
+    const allLatitudeCoordinates = getAllCoordinates(arrayOfCenters, 'lat');
+    const allLongtitudeCoordinates = getAllCoordinates(arrayOfCenters, 'lng');
+    const minLatitude = findMinCoordinate(allLatitudeCoordinates);
+    const maxLatitude = findMaxCoordinate(allLatitudeCoordinates);
+    const minLongtitude = findMinCoordinate(allLongtitudeCoordinates);
+    const maxLongtitude = findMaxCoordinate(allLongtitudeCoordinates);
+    const verticalCameraMargin = ((maxLatitude + maxLatitudeValue) - (minLatitude + maxLatitudeValue))/32;
+    const horizontalCameraMargin = ((maxLongtitude + maxLongtitudeValue) - (minLongtitude + maxLongtitudeValue))/32;
+    const bottomLeft = getPositionObject(minLatitude - verticalCameraMargin, minLongtitude - horizontalCameraMargin);
+    const upperRight = getPositionObject(maxLatitude + verticalCameraMargin, maxLongtitude + horizontalCameraMargin);
+    return [bottomLeft, upperRight];
 }
 
 if (location.search) {
@@ -79,8 +98,12 @@ if (location.search) {
 if (queryParameters['zoom']) zoomLevel = parseInt(queryParameters['zoom']);
 
 if (queryParameters['lat'] && queryParameters['lng']) {
-    if (queryParameters['lat'].length > 1 && queryParameters['lng'] > 1) {
-        //Implement boundaries
+    if (queryParameters['lat'].length > 1 && queryParameters['lng'].length > 1) {
+        const bottomLeft = getPositionObject(queryParameters['lat'][0], queryParameters['lng'][0]);
+        const upperRight = getPositionObject(queryParameters['lat'][1], queryParameters['lng'][1]);
+        const cameraBoundaries = getBoundariesObject(bottomLeft, upperRight);
+        map.fitBounds(cameraBoundaries);
+        isCameraCoordinatesSet = true;
     } else {
         const cameraPosition = getPositionObject(queryParameters['lat'], queryParameters['lng']);
         map.setView(cameraPosition, zoomLevel);
@@ -90,17 +113,26 @@ if (queryParameters['lat'] && queryParameters['lng']) {
 
 if (queryParameters['id']) {
     if (queryParameters['id'].length > 1) {
+        let numberOfCentersToFetch = queryParameters['id'].length;
         queryParameters['id'].forEach(function(id) {
             fetchCenter(centersUrl, id)
                 .then(response => {
-                    const center = createCenterObject(response);
-                    saveCenterDetails(centers, center);
-                    drawCenter(center, map);
+                    if (response !== null) {
+                        const center = createCenterObject(response);
+                        saveCenterDetails(centers, center);
+                        drawCenter(center, map);
+                    }
+                    numberOfCentersToFetch--;
+                    if (!isCameraCoordinatesSet && !numberOfCentersToFetch) {
+                        const cameraBoundaries = getBoundariesObject(findBoundaries(centers));
+                        map.fitBounds(cameraBoundaries);
+                    }
                 });
         });
     } else {
         fetchCenter(centersUrl, queryParameters['id'])
             .then(response => {
+                if (response === null) return;
                 const center = createCenterObject(response);
                 saveCenterDetails(centers, center);
                 drawCenter(center, map);
