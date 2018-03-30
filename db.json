@@ -59,6 +59,16 @@
                 "lng":"10"
             },
             "rating":"4"
+        },
+        {
+            "id":400,
+            "name":"Test Center 4",
+            "address":"Thailand, Phuket",
+            "location": {
+                "lat":"20",
+                "lng":"10"
+            },
+            "rating":"4"
         }
     ]
 }
