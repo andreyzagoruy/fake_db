@@ -126,6 +126,7 @@ if (queryParameters['id']) {
                     if (!isCameraCoordinatesSet && !numberOfCentersToFetch) {
                         const cameraBoundaries = getBoundariesObject(findBoundaries(centers));
                         map.fitBounds(cameraBoundaries);
+                        isCameraCoordinatesSet = true;
                     }
                 });
         });
